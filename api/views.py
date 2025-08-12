@@ -15,7 +15,7 @@ from rest_framework.decorators import api_view
 
 # DRF Serialization
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 def studentsView(request):
   if request.method == 'GET':
     # Get all data from Student table
@@ -25,6 +25,18 @@ def studentsView(request):
   elif request.method == 'POST':
     serializer = StudentSerializer(data=request.data)
     if serializer.is_valid():
+      serializer.save()
       return Response(serializer.data, status=status.HTTP_201_CREATED)
     print(serializer.errors)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+  
+  
+  @api_view(['GET'])
+  def studentDetailView(request, pk):
+    try:
+      student = Student.objects.get(pk=pk)
+    except Student.DoesNotExist:
+      return Response(status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'GET':
+      serializer = StudentSerializer(student)
+      return Response(serializer.data, status=status.HTTP_200_OK)
