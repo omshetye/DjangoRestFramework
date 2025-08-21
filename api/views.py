@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
+from django.shortcuts import Http404
 
 # def studentsView(request):
 #   students = Student.objects.all()
@@ -57,7 +58,7 @@ def studentDetailView(request, pk):
     student.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
   
-class EmployeeView(APIView):
+class employeeView(APIView):
   def get(self, request):
     employees = Employee.objects.all()
     serializer = EmployeeSerializer(instance=employees, many=True)
@@ -69,3 +70,30 @@ class EmployeeView(APIView):
       serializer.save()
       return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class employeeDetailView(APIView):
+  def getObject(self, pk):
+    try:
+      employee = Employee.objects.get(pk=pk)
+      return employee
+    except Employee.DoesNotExist:
+      raise Http404
+    
+  def get(self, request, pk):
+      employee = self.getObject(pk)
+      serializer = EmployeeSerializer(employee)
+      return Response(serializer.data, status=status.HTTP_200_OK)
+  
+  def put(self, request, pk):
+    employee = self.getObject(pk)
+    serializer = EmployeeSerializer(employee, request.data)
+    if serializer.is_valid():
+      serializer.save()
+      return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+  
+  def delete(self, request, pk):
+    employee = self.getObject(pk)
+    employee.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
